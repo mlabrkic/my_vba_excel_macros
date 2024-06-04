@@ -1,7 +1,28 @@
+' On this way...
+'
+' data base, Web browser
+' router, all ports view, open
+' Select all ports, Copy
+'
+' Paste to "ports.csv"
+' Import "ports.csv" to Excel (tab delimiter).
+' ------------------------------------------------------------
+
+Sub No_00_Main()
+    No_01_Copy_user_address_K
+    No_02_Sort_Slot_Port
+    No_03_Delete_some_rows
+    No_04_Port_Name
+    No_05_Delete_rows_VLAN
+    No_06_Format_cells
+    No_07_ColumnWidth
+
+End Sub
+
+
 Sub No_01_Copy_user_address_K()
 ' Attribute No_01_xxx_W.VB_ProcData.VB_Invoke_Func = "k\n14"
 ' CTRL-K
-' Description: WebX
 ' mlabrkic, date: 2023-11M-12
 
 ' EDIT:
@@ -39,11 +60,9 @@ Sub No_01_Copy_user_address_K()
     Dim i As Long
     Dim j As Integer
     Dim s2PortName As String
-    ' Dim s8UI As String
 
     For i = 1 To FinalRow Step 1
         s2PortName = radnaSH.Cells(i, 2).Value
-        ' s8UI = radnaSH.Cells(i, 8).Value
         If s2PortName = "" Then
             j = j + 1
             radnaSH.Cells(i - j, 10 + j).Value = radnaSH.Cells(i, 1).Value
@@ -58,10 +77,42 @@ Sub No_01_Copy_user_address_K()
 End Sub
 
 
-' C:\02_PROG\10_Windows\05_VBA\PacktPublishing\vba_Excel_section-11-iteration_2023_05M_11.bas
-Sub No_02_Delete_some_rows()
+Sub No_02_Sort_Slot_Port()
+' mlabrkic, date: 2024-06M-04
+
+' EDIT:
+
+'    Cells.Select
+'    ActiveWorkbook.Worksheets("PORTOVI").Sort.SortFields.Clear
+
+    Dim FinalRow As Long
+    FinalRow = ThisWorkbook.Worksheets("PORTOVI").Cells(ThisWorkbook.Worksheets("PORTOVI").Rows.Count, 1).End(xlUp).Row
+
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Add2 Key:=Range( _
+        "A2:A" & FinalRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Add2 Key:=Range( _
+        "B2:B" & FinalRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+
+    With ThisWorkbook.Worksheets("PORTOVI").Sort
+        .SetRange Range("A1:N" & FinalRow)
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    Range("L2").Select
+
+End Sub
+
+
+Sub No_03_Delete_some_rows()
 ' mlabrkic, date: 2024-05M-20
 
+' C:\02_PROG\10_Windows\05_VBA\PacktPublishing\vba_Excel_section-11-iteration_2023_05M_11.bas
 ' EDIT:
 
 ' ------------------------------
@@ -95,12 +146,11 @@ Sub No_02_Delete_some_rows()
 End Sub
 
 
-Sub No_03_Copy_VLAN()
+Sub No_04_Port_Name()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
-' date: 2024-05M-20 11:19:01
-
+' date: 2024-06M-03
 ' ------------------------------
     Dim myWB As Workbook
     Set myWB = ThisWorkbook
@@ -108,54 +158,61 @@ Sub No_03_Copy_VLAN()
     Dim radnaSH As Worksheet
     Set radnaSH = myWB.Worksheets("PORTOVI")
 
-    ' ------------------------------
+' ------------------------------
     Dim FinalRow As Long
     FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 1).End(xlUp).Row
 
     Dim i As Long
-    Dim j As Integer, iPointVLAN As Integer
-    Dim i2PNameL As Integer, i2PNameOldL As Integer
+    Dim iPoint As Integer, j As Integer
 
-    Dim s1SlotOLD As String, s2PortNameOLD As String
-    Dim s1Slot As String, s2PortName As String
+    Dim s2Temp As String, s2TempOld As String
+    Dim sPortName As String, sPortNameOld As String
 
-    Dim s2PortNameLeft As String, sVLAN As String
+    Dim i2TempLen As Integer, i2TempOldLen As Integer
+    Dim sVLAN As String
 
     j = 0
 
-    s1SlotOLD = radnaSH.Cells(2, 1).Value
-    s2PortNameOLD = radnaSH.Cells(2, 2).Value
-    i2PNameOldL = Len(s2PortNameOLD)
+    s2TempOld = radnaSH.Cells(2, 2).Value
+    iPoint = InStr(1, s2TempOld, ".", 1) ' Pozicija "." nakon 1 karaktera
+
+    If iPoint > 0 Then
+        sPortNameOld = Left(s2TempOld, iPoint - 1)
+    Else
+        sPortNameOld = s2TempOld
+    End If
+    i2TempOldLen = Len(s2TempOld)
 
     For i = 3 To FinalRow Step 1
-        s1Slot = radnaSH.Cells(i, 1).Value
-        s2PortName = radnaSH.Cells(i, 2).Value
+        s2Temp = radnaSH.Cells(i, 2).Value
+        iPoint = InStr(1, s2Temp, ".", 1) ' Pozicija "." nakon 1 karaktera
 
-        i2PNameL = Len(s2PortName)
-        s2PortNameLeft = Left(s2PortName, i2PNameOldL)
+        If iPoint > 0 Then
+            sPortName = Left(s2Temp, iPoint - 1)
+        Else
+            sPortName = s2Temp
+        End If
+        i2TempLen = Len(s2Temp)
+'        radnaSH.Cells(i, 17).Value = s2PortName
 
-        If s1Slot = s1SlotOLD Then
-            If s2PortNameLeft = s2PortNameOLD Then
-                j = j + 1
-                iPointVLAN = InStr(1, s2PortName, ".", 1) ' Pozicija "." nakon 1 karaktera
-                sVLAN = Mid(s2PortName, iPointVLAN + 1, i2PNameL - iPointVLAN)
-                If (sVLAN = "16386") Or (sVLAN = "32767") Then
+        If sPortName = sPortNameOld Then
+            j = j + 1
+            sVLAN = Mid(s2Temp, iPoint + 1, i2TempLen - iPoint)
+            If (sVLAN = "16386") Or (sVLAN = "32767") Then
+            Else
+                If j = 1 Then
+                    radnaSH.Cells(i - j, 13).NumberFormat = "@" ' Text
+                    radnaSH.Cells(i - j, 13).Value = sVLAN
                 Else
                     radnaSH.Cells(i - j, 13).Value = radnaSH.Cells(i - j, 13).Value + "," + sVLAN
                 End If
-                radnaSH.Cells(i, 13).Value = "vlan"
-                s2PortNameOLD = s2PortNameLeft
-            Else
-                j = 0
-                s2PortNameOLD = s2PortName
-                i2PNameOldL = Len(s2PortNameOLD)
             End If
+            radnaSH.Cells(i, 13).Value = "vlan"
         Else
             j = 0
-            s1SlotOLD = s1Slot
-            s2PortNameOLD = s2PortName
-            i2PNameOldL = Len(s2PortNameOLD)
+            sPortNameOld = sPortName
         End If
+
     Next i
 
     Set radnaSH = Nothing
@@ -164,7 +221,7 @@ Sub No_03_Copy_VLAN()
 End Sub
 
 
-Sub No_04_Delete_rows_VLAN()
+Sub No_05_Delete_rows_VLAN()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
@@ -176,9 +233,6 @@ Sub No_04_Delete_rows_VLAN()
 
     Dim radnaSH As Worksheet
     Set radnaSH = myWB.Worksheets("PORTOVI")
-
-    ' radnaSH.Range(radnaSH.Cells(1, 2), radnaSH.Cells(2, 3)).Copy
-    ' radnaSH.Cells(1, 1).Value = Now()
 
 ' ------------------------------
     Dim FinalRow As Long
@@ -204,7 +258,7 @@ Sub No_04_Delete_rows_VLAN()
 End Sub
 
 
-Sub No_05_Format_cells()
+Sub No_06_Format_cells()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
@@ -263,4 +317,62 @@ Sub No_05_Format_cells()
 
 End Sub
 
+
+Sub No_07_ColumnWidth()
+' mlabrkic, date: 2024-06M-04
+' EDIT:
+
+    Columns("B:B").ColumnWidth = 9.57
+    Columns("C:C").ColumnWidth = 9.43
+    Columns("D:D").ColumnWidth = 5.86
+    Columns("E:E").ColumnWidth = 31
+    Columns("F:F").ColumnWidth = 12
+    Columns("G:G").ColumnWidth = 10.43
+    Columns("H:H").ColumnWidth = 21.14
+    Columns("I:I").ColumnWidth = 14
+    Columns("J:J").ColumnWidth = 5.86
+    Columns("K:K").ColumnWidth = 27.86
+    Columns("L:L").ColumnWidth = 38.14
+    Columns("M:M").ColumnWidth = 25.29
+    Columns("N:N").ColumnWidth = 11.86
+    ActiveWorkbook.Save
+End Sub
+
+
+Sub ZZ_Port_Name()
+' mlabrkic, date: 2024-06M-03
+
+' EDIT:
+' date:
+' ------------------------------
+    Dim myWB As Workbook
+    Set myWB = ThisWorkbook
+
+    Dim radnaSH As Worksheet
+    Set radnaSH = myWB.Worksheets("PORTOVI")
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim iPoint As Integer
+    Dim s2Temp As String, s2PortName As String
+
+    For i = 1 To FinalRow Step 1
+        s2Temp = radnaSH.Cells(i, 2).Value
+        iPoint = InStr(1, s2Temp, ".", 1) ' Pozicija "." nakon 1 karaktera
+
+        If iPoint > 0 Then
+            s2PortName = Left(s2Temp, iPoint - 1)
+        Else
+            s2PortName = s2Temp
+        End If
+        radnaSH.Cells(i, 17).Value = s2PortName
+    Next i
+
+    Set radnaSH = Nothing
+    Set myWB = Nothing
+
+End Sub
 
