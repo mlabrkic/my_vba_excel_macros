@@ -1,7 +1,7 @@
 ' On this way...
 '
 ' data base, Web browser
-' router, all ports view, open
+' jun-router, all ports view, open
 ' Select all ports, Copy
 '
 ' Paste to "ports.csv"
@@ -11,11 +11,12 @@
 Sub No_00_Main()
     No_01_Copy_user_address_K
     No_02_Sort_Slot_Port
-    No_03_Delete_some_rows
-    No_04_Port_Name
-    No_05_Delete_rows_VLAN
-    No_06_Format_cells
+    No_03_Delete_empty_rows
+    No_04_Mark_vlan_rows
+    No_05_Delete_vlan_rows
+    No_06_Format_cells_Font
     No_07_ColumnWidth
+    No_08_Delete_rows_Logical
 
 End Sub
 
@@ -109,7 +110,7 @@ Sub No_02_Sort_Slot_Port()
 End Sub
 
 
-Sub No_03_Delete_some_rows()
+Sub No_03_Delete_empty_rows()
 ' mlabrkic, date: 2024-05M-20
 
 ' C:\02_PROG\10_Windows\05_VBA\PacktPublishing\vba_Excel_section-11-iteration_2023_05M_11.bas
@@ -146,7 +147,7 @@ Sub No_03_Delete_some_rows()
 End Sub
 
 
-Sub No_04_Port_Name()
+Sub No_04_Mark_vlan_rows()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
@@ -221,7 +222,7 @@ Sub No_04_Port_Name()
 End Sub
 
 
-Sub No_05_Delete_rows_VLAN()
+Sub No_05_Delete_vlan_rows()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
@@ -258,7 +259,7 @@ Sub No_05_Delete_rows_VLAN()
 End Sub
 
 
-Sub No_06_Format_cells()
+Sub No_06_Format_cells_Font()
 ' mlabrkic, date: 2024-05M-20
 
 ' EDIT:
@@ -297,7 +298,7 @@ Sub No_06_Format_cells()
             Set Rng = radnaSH.Cells(i, 14)
             With Rng
                 With .Font
-                    .ColorIndex = 3   ' Red
+                    .ColorIndex = 3   ' red
                     .Bold = True
                 End With
             End With
@@ -335,6 +336,237 @@ Sub No_07_ColumnWidth()
     Columns("L:L").ColumnWidth = 38.14
     Columns("M:M").ColumnWidth = 25.29
     Columns("N:N").ColumnWidth = 11.86
+
+End Sub
+
+
+Sub No_08_Delete_rows_Logical()
+' mlabrkic, date: 2024-06M-09
+' EDIT:
+
+' ------------------------------
+    Dim myWB As Workbook
+    Set myWB = ThisWorkbook
+
+    Dim radnaSH As Worksheet
+    Set radnaSH = myWB.Worksheets("PORTOVI")
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s5Connector As String
+
+    For i = FinalRow To 1 Step -1
+        s5Connector = radnaSH.Cells(i, 6).Value
+
+        If s5Connector = "Logical" Then
+            radnaSH.Cells(i, 6).EntireRow.Delete
+        End If
+    Next i
+
+    Set radnaSH = Nothing
+    Set myWB = Nothing
+
+    ActiveWorkbook.Save
+End Sub
+
+
+Sub No_B_01_Delete_rows_Active()
+' mlabrkic, date: 2024-06M-10
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s3Status As String
+
+    For i = FinalRow To 1 Step -1
+        s3Status = ActiveSheet.Cells(i, 3).Value
+
+        If s3Status = "Aktivan" Then
+            ActiveSheet.Cells(i, 3).EntireRow.Delete
+        End If
+    Next i
+
+     ActiveWorkbook.Save
+End Sub
+
+
+Sub No_B_02_Delete_rows_10G()
+' mlabrkic, date: 2024-06M-10
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s4Bandwidth As String
+
+    For i = FinalRow To 1 Step -1
+        s4Bandwidth = ActiveSheet.Cells(i, 4).Value
+
+        If (s4Bandwidth = "10 Gb") Or (s4Bandwidth = "100 Gb") Then
+            ActiveSheet.Cells(i, 4).EntireRow.Delete
+        End If
+    Next i
+
+     ActiveWorkbook.Save
+End Sub
+
+
+Sub No_B_03_Mark_new_Slot_PIC()
+' mlabrkic, date: 2024-06M-09
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s1Slot As String, s1SlotOLD As String
+
+    s1SlotOLD = ActiveSheet.Cells(1, 1).Value
+
+    For i = 2 To FinalRow
+        s1Slot = ActiveSheet.Cells(i, 1).Value
+
+        If s1Slot <> s1SlotOLD Then
+           ' Set Rng = ActiveSheet.Cells(i, j)
+           Set Rng = ActiveSheet.Range("A" & i & ":N" & i)
+           With Rng
+                With .Borders(xlEdgeTop)
+                   .LineStyle = xlContinuous
+                   .Weight = xlThin
+                   ' .Weight = xlThick
+                   .ColorIndex = 1   ' black
+                   ' .ColorIndex = 3   ' red
+                   ' .ColorIndex = 4   ' green
+                   ' .ColorIndex = 5   ' blue
+                End With
+            End With
+        End If
+        s1SlotOLD = s1Slot
+    Next i
+
+    Set Rng = Nothing
+
+    ActiveWorkbook.Save
+End Sub
+
+
+Sub No_B_04_Mark_new_Slot()
+' mlabrkic, date: 2024-06M-10
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s1Slot As String, s1SlotOLD As String
+
+    Dim iSlot As Integer, iSlotOLD As Integer
+    Dim s1SlotMain As String, s1SlotOLDMain As String
+
+    s1SlotOLD = ActiveSheet.Cells(2, 1).Value
+    iSlotOLD = InStr(1, s1SlotOLD, "/", 1) ' Position "/" after 1. character
+    s1SlotOLDMain = Left(s1SlotOLD, iSlotOLD - 1)
+
+    For i = 3 To FinalRow
+        s1Slot = ActiveSheet.Cells(i, 1).Value
+        iSlot = InStr(1, s1Slot, "/", 1) ' Position "/" after 1. character
+        s1SlotMain = Left(s1Slot, iSlot - 1)
+
+        If s1SlotMain <> s1SlotOLDMain Then
+           ' Set Rng = ActiveSheet.Cells(i, j)
+           Set Rng = ActiveSheet.Range("A" & i & ":N" & i)
+           With Rng
+                With .Borders(xlEdgeTop)
+                   .LineStyle = xlContinuous
+                   ' .Weight = xlThin
+                   .Weight = xlThick
+                   ' .ColorIndex = 1   ' black
+                   ' .ColorIndex = 3   ' red
+                   ' .ColorIndex = 4   ' green
+                   .ColorIndex = 5   ' blue
+                End With
+            End With
+        End If
+        s1SlotOLDMain = s1SlotMain
+    Next i
+
+    Set Rng = Nothing
+
+    ActiveWorkbook.Save
+End Sub
+
+
+Sub No_B_05_Mark_Ports_free()
+' mlabrkic, date: 2024-06M-10
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s3Status As String, s14noVLAN As String, s8Path As String, s11User As String
+
+    For i = 2 To FinalRow
+        s3Status = ActiveSheet.Cells(i, 3).Value
+        s14noVLAN = ActiveSheet.Cells(i, 14).Value
+        s8Path = ActiveSheet.Cells(i, 8).Value
+        s11User = ActiveSheet.Cells(i, 11).Value
+
+        If (s3Status <> "Rezerviran") And  (s14noVLAN = "NEMA VLAN") Then
+            ActiveSheet.Cells(i, 4).Value = "FREE"
+            ' Range("F15").Select
+            ActiveSheet.Range("D" & i).Select
+            With Selection.Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+                .Color = 5296274  ' green
+                ' .Color = 15773696  ' blue
+                ' .Color = 65535  ' yellow
+                .TintAndShade = 0
+                .PatternTintAndShade = 0
+            End With
+        ElseIf (s3Status <> "Rezerviran")  And  (s14noVLAN <> "NEMA VLAN") And  (s8Path = "--") Then
+            ActiveSheet.Cells(i, 4).Value = "MAYBE"
+            ' Range("F15").Select
+            ActiveSheet.Range("D" & i).Select
+            With Selection.Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+                ' .Color = 5296274  ' green
+                .Color = 15773696  ' blue
+                ' .Color = 65535  ' yellow
+                .TintAndShade = 0
+                .PatternTintAndShade = 0
+            End With
+        ElseIf (s3Status = "Aktivan")  And  (s14noVLAN <> "NEMA VLAN") And  ((s11User = "-") Or (s11User = "")) Then
+            ' ActiveSheet.Cells(i, 5).Value = "CHECK IT OUT"
+            ' Range("F15").Select
+            ActiveSheet.Range("E" & i).Select
+            ' ActiveSheet.Range("D" & i).Select
+            With Selection.Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+                ' .Color = 5296274  ' green
+                ' .Color = 15773696  ' blue
+                ' .Color = 65535  ' yellow
+                .Color = 49407  ' orange
+                .TintAndShade = 0
+                .PatternTintAndShade = 0
+            End With
+        End If
+    Next i
+
     ActiveWorkbook.Save
 End Sub
 
