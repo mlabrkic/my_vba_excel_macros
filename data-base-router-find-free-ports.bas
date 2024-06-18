@@ -24,9 +24,9 @@ End Sub
 
 
 Sub Main_02_fun()
-    No_01_Sort_CustomOrder_router_J
-    No_02_Mark_free_ports
-    No_03_Mark_new_Slot
+    Fun02_01_Sort_CustomOrder_router_J
+    Fun02_02_Mark_free_ports
+    Fun02_03_Mark_new_Slot
 End Sub
 
 
@@ -64,6 +64,10 @@ Function Fun_01_Copy_user_address_K()
     Set radnaSH = myWB.Worksheets("PORTOVI")
 
 ' ------------------------------
+    ' Delete the first row:
+    Rows("1:1").Select
+    Selection.Delete Shift:=xlUp
+
     Dim FinalRow As Long
     FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 1).End(xlUp).Row
 
@@ -419,7 +423,7 @@ Function Fun_09_Slot()
 End Function
 
 
-Sub No_01_Sort_CustomOrder_router_J()
+Function Fun02_01_Sort_CustomOrder_router_J()
 ' mlabrkic, date: 2024-06M-11
 ' Sheet: PORTOVI_ALL
 '
@@ -459,7 +463,7 @@ Sub No_01_Sort_CustomOrder_router_J()
     Range("H2").Select
 
     ActiveWorkbook.Save
-End Sub
+End Function
 
 
 Function Delete_rows_NotInNetwork()
@@ -484,7 +488,7 @@ Function Delete_rows_NotInNetwork()
 End Function
 
 
-Sub No_02_Mark_free_ports()
+Function Fun02_02_Mark_free_ports()
 ' mlabrkic, date: 2024-06M-10
 ' EDIT:
 
@@ -548,7 +552,7 @@ Sub No_02_Mark_free_ports()
     Range("A1").Select
     ' Range("A1").Activate
     ActiveWorkbook.Save
-End Sub
+End Function
 
 
 Function Mark_new_Slot_PIC()
@@ -591,7 +595,7 @@ Function Mark_new_Slot_PIC()
 End Function
 
 
-Sub No_03_Mark_new_Slot()
+Function Fun02_03_Mark_new_Slot()
 ' mlabrkic, date: 2024-06M-09
 ' EDIT:
 
@@ -629,6 +633,66 @@ Sub No_03_Mark_new_Slot()
     Next i
 
     Set Rng = Nothing
+
+    ActiveWorkbook.Save
+End Function
+
+
+Sub No_01_InsertColumn_REZERVACIJA_POVIJEST()
+' mlabrkic, date: 2024-06M-17
+' EDIT:
+
+' ------------------------------
+    Columns("H:H").Select
+    Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    With Selection.Interior
+        .Pattern = xlNone
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+    Columns("I:I").Select
+    Selection.ClearContents
+
+    Range("H2").Select
+
+    Range("H1").Value = "REZERVACIJA"
+    Range("I1").Value = "POVIJEST"
+
+    Columns("A:A").ColumnWidth = 3.86
+    Columns("B:B").ColumnWidth = 6
+    Columns("C:C").ColumnWidth = 9.57
+    Columns("D:D").ColumnWidth = 9.43
+    Columns("E:E").ColumnWidth = 5.86
+    Columns("F:F").ColumnWidth = 31
+    Columns("G:G").ColumnWidth = 8.14
+    Columns("H:H").ColumnWidth = 80
+    Columns("I:I").ColumnWidth = 37.14
+    Columns("J:J").ColumnWidth = 55.43
+    Columns("K:K").ColumnWidth = 5.29
+    Columns("L:L").ColumnWidth = 19.86
+    Columns("M:M").ColumnWidth = 27.57
+    Columns("N:N").ColumnWidth = 25.29
+
+    Rows("1:1").Select
+    Selection.Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    Range("C1").Select
+    Range("C1").Value = "DIS: "
+
+    Range("C1").Select
+    Selection.Font.Bold = True
+    With Selection.Font
+        .Name = "Calibri"
+        .Size = 14
+        .Strikethrough = False
+        .Superscript = False
+        .Subscript = False
+        .OutlineFont = False
+        .Shadow = False
+        .Underline = xlUnderlineStyleNone
+        .ThemeColor = xlThemeColorLight1
+        .TintAndShade = 0
+        .ThemeFont = xlThemeFontMinor
+    End With
 
     ActiveWorkbook.Save
 End Sub
