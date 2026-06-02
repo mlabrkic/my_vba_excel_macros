@@ -1,3 +1,6 @@
+' date: 2026_06M_02 20:51:26
+' ------------------------------------------------------------
+
 ' On this way...
 '
 ' data base, Web browser
@@ -6,6 +9,8 @@
 '
 ' Paste to "ports.csv"
 ' Import "ports.csv" to Excel (tab delimiter).
+' ------------------------------------------------------------
+' In VBA editor: F1 on InStr for help
 ' ------------------------------------------------------------
 
 Sub Main_01_fun()
@@ -19,12 +24,14 @@ Sub Main_01_fun()
     Fun_06_Delete_rows_Logical
     Fun_07_Format_cells_Font
     Fun_08_ColumnWidth
-    Fun_09_Slot
+
+    Fun_09_sort_Port
+    Fun_10_Sort_Slot_Port
 End Sub
 
 
 Sub Main_02_fun()
-    Fun02_01_Sort_CustomOrder_router_J
+    ' Fun02_01_Sort_CustomOrder_router_J
     Fun02_02_Mark_free_ports
     Fun02_03_Mark_new_Slot
 End Sub
@@ -212,7 +219,9 @@ Function Fun_04_Mark_vlan_rows()
         If sPortName = sPortNameOld Then
             j = j + 1
             sVLAN = Mid(s2Temp, iPoint + 1, i2TempLen - iPoint)
-            If (sVLAN = "16386") Or (sVLAN = "32767") Then
+
+            ' TODO: enter the correct VLAN
+            If (sVLAN = "1xxx") Or (sVLAN = "3xxx") Then
             Else
                 If j = 1 Then
                     radnaSH.Cells(i - j, 13).NumberFormat = "@" ' Text
@@ -262,7 +271,7 @@ Function Fun_05_Delete_vlan_rows()
         If s13Mvlan = "vlan" Then
             radnaSH.Cells(i, 13).EntireRow.Delete
         ElseIf s13Mvlan = "" Then
-            radnaSH.Cells(i, 13).Value = "NEMA VLAN"
+            ' radnaSH.Cells(i, 13).Value = "NEMA VLAN"
         End If
     Next i
 
@@ -387,15 +396,16 @@ Function Fun_08_ColumnWidth()
     Selection.Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
 
     Columns("A:A").ColumnWidth = 5.2
-    ThisWorkbook.Worksheets("PORTOVI").Range("A1").Value = "Slot 0"
+    ' ThisWorkbook.Worksheets("PORTOVI").Range("A1").Value = "Slot 0"
+    ThisWorkbook.Worksheets("PORTOVI").Range("A1").Value = "Sort-Port"
 
 End Function
 
-
-Function Fun_09_Slot()
+Function Fun_09_sort_Port()
 ' mlabrkic, date: 2024-06M-10
 ' EDIT:
 
+' In VBA editor: F1 on InStr for help
 ' ------------------------------
     Dim myWB As Workbook
     Set myWB = ThisWorkbook
@@ -408,19 +418,63 @@ Function Fun_09_Slot()
     FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 2).End(xlUp).Row ' column 2
 
     Dim i As Long
-    Dim iSlot As Integer
-    Dim s1Slot As String, s1SlotMain As String
+    Dim iPIC As Integer, iPort As Integer
+    Dim s1Port As String, s1PIC As String, s1PortPIC As String
 
     For i = 2 To FinalRow
-        s1Slot = ActiveSheet.Cells(i, 2).Value
-        iSlot = InStr(1, s1Slot, "/", 1) ' Position "/" after 1. character
-        s1SlotMain = Left(s1Slot, iSlot - 1)
-        ActiveSheet.Cells(i, 1).Value = s1SlotMain
+        s1Port = ActiveSheet.Cells(i, 3).Value
+
+        iPIC = InStr(1, s1Port, "/", vbTextCompare) ' Position "/" after 1. character
+        s1PIC = Mid(s1Port, iPIC + 1, 1)
+        ActiveSheet.Cells(i, 15).Value = s1PIC
+
+        ' InstrRev(stringcheck, stringmatch, [ start, [ compare ]])
+        ' iPort = InstrRev(s1Port, "/", -1, vbTextCompare) ' Position "/" after 1. character from end
+        iPort = InStrRev(s1Port, "/") ' Position "/" after 1. character from end
+        s1PortPIC = Mid(s1Port, iPort + 1, 2)
+        ActiveSheet.Cells(i, 1).Value = s1PortPIC
+
     Next i
 
     Range("A1").Select
     ActiveWorkbook.Save
 End Function
+
+Function Fun_10_Sort_Slot_Port()
+' mlabrkic, date: 2024-06M-04
+
+' EDIT:
+
+'    Cells.Select
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Clear
+
+    Dim FinalRow As Long
+    FinalRow = ThisWorkbook.Worksheets("PORTOVI").Cells(ThisWorkbook.Worksheets("PORTOVI").Rows.Count, 1).End(xlUp).Row
+
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Add2 Key:=Range( _
+        "B2:B" & FinalRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Add2 Key:=Range( _
+        "O2:O" & FinalRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+
+    ThisWorkbook.Worksheets("PORTOVI").Sort.SortFields.Add2 Key:=Range( _
+        "A2:A" & FinalRow), SortOn:=xlSortOnValues, Order:=xlAscending, DataOption:= _
+        xlSortNormal
+
+    With ThisWorkbook.Worksheets("PORTOVI").Sort
+        .SetRange Range("A1:O" & FinalRow)
+        .Header = xlYes
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    Range("L2").Select
+
+End Function
+
 
 
 Function Fun02_01_Sort_CustomOrder_router_J()
@@ -442,7 +496,7 @@ Function Fun02_01_Sort_CustomOrder_router_J()
     ' Sort data using a custom list
 
     ' https://learn.microsoft.com/en-us/office/vba/api/excel.sortfields.add2
-    ' expression.Add2 (Key, SortOn, Order, CustomOrder, DataOption, SubField)
+    ' expression.Add2 (Key, SortOn, Order, CustomOrder, DataOption, FunctionField)
 
     ActiveSheet.Sort.SortFields.Add2 Key:=Range("A2:A" & FinalRow) _
         , SortOn:=xlSortOnValues, Order:=xlAscending _
@@ -491,6 +545,7 @@ End Function
 Function Fun02_02_Mark_free_ports()
 ' mlabrkic, date: 2024-06M-10
 ' EDIT:
+' date: 2025_11M_13 17:40:41
 
 ' ------------------------------
     Dim FinalRow As Long
@@ -501,11 +556,13 @@ Function Fun02_02_Mark_free_ports()
 
     For i = 2 To FinalRow
         s4Status = ActiveSheet.Cells(i, 4).Value
-        s14noVLAN = ActiveSheet.Cells(i, 14).Value
+        s6Description = ActiveSheet.Cells(i, 6).Value
         s9Path = ActiveSheet.Cells(i, 9).Value
         s12User = ActiveSheet.Cells(i, 12).Value
+        s14noVLAN = ActiveSheet.Cells(i, 14).Value
 
-        If (s4Status <> "Rezerviran") And (s14noVLAN = "NEMA VLAN") Then
+        ' If (s4Status = "Aktivan") And (s14noVLAN = "") And ((s6Description = "--") Or (s6Description = "")) And ((s9Path = "--") Or (s9Path = "")) Then
+        If (s4Status <> "Rezerviran") And ((s6Description = "--") Or (s6Description = "")) And ((s9Path = "--") Or (s9Path = "")) Then
             ActiveSheet.Cells(i, 7).Value = "1_FREE"
             ' Range("F15").Select
             ActiveSheet.Range("G" & i).Select
@@ -518,7 +575,21 @@ Function Fun02_02_Mark_free_ports()
                 .TintAndShade = 0
                 .PatternTintAndShade = 0
             End With
-        ElseIf (s4Status <> "Rezerviran") And (s14noVLAN <> "NEMA VLAN") And ((s9Path = "--") Or (s9Path = "")) Then
+        ElseIf (s4Status = "Isključen") And ((s6Description = "--") Or (s6Description = "")) Then
+            ActiveSheet.Cells(i, 7).Value = "1_FREE"
+            ' Range("F15").Select
+            ActiveSheet.Range("G" & i).Select
+            With Selection.Interior
+                .Pattern = xlSolid
+                .PatternColorIndex = xlAutomatic
+                .Color = 5296274  ' green
+                ' .Color = 15773696  ' blue
+                ' .Color = 65535  ' yellow
+                .TintAndShade = 0
+                .PatternTintAndShade = 0
+            End With
+        ' ElseIf (s4Status <> "Rezerviran") And (s14noVLAN <> "") And (((s6Description = "--") Or (s6Description = "")) And ((s9Path = "--") Or (s9Path = ""))) Then
+        ElseIf ((s4Status = "Aktivan") And ((s6Description = "--") Or (s6Description = ""))) Or ((s4Status = "Isključen") And ((s9Path = "--") Or (s9Path = ""))) Then
             ActiveSheet.Cells(i, 7).Value = "2_MAYBE"
             ' Range("F15").Select
             ActiveSheet.Range("G" & i).Select
@@ -531,7 +602,8 @@ Function Fun02_02_Mark_free_ports()
                 .TintAndShade = 0
                 .PatternTintAndShade = 0
             End With
-        ElseIf (s4Status = "Aktivan") And (s14noVLAN <> "NEMA VLAN") And ((s12User = "-") Or (s12User = "")) Then
+        ' ElseIf (s4Status = "Aktivan") And ((s12User = "-") Or (s12User = "")) Then
+        ElseIf (s4Status = "Aktivan") And ((s12User = "-") Or (s12User = "")) Then
             ActiveSheet.Cells(i, 7).Value = "3_CHECK"
             ' Range("F15").Select
             ActiveSheet.Range("G" & i).Select
@@ -555,46 +627,6 @@ Function Fun02_02_Mark_free_ports()
 End Function
 
 
-Function Mark_new_Slot_PIC()
-' mlabrkic, date: 2024-06M-09
-' EDIT:
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim s1Slot As String, s1SlotOLD As String
-
-    s1SlotOLD = ActiveSheet.Cells(1, 2).Value
-
-    For i = 2 To FinalRow
-        s1Slot = ActiveSheet.Cells(i, 2).Value
-
-        If s1Slot <> s1SlotOLD Then
-           ' Set Rng = ActiveSheet.Cells(i, j)
-           Set Rng = ActiveSheet.Range("A" & i & ":O" & i)
-           With Rng
-                With .Borders(xlEdgeTop)
-                   .LineStyle = xlContinuous
-                   .Weight = xlThin
-                   ' .Weight = xlThick
-                   .ColorIndex = 1   ' black
-                   ' .ColorIndex = 3   ' red
-                   ' .ColorIndex = 4   ' green
-                   ' .ColorIndex = 5   ' blue
-                End With
-            End With
-        End If
-        s1SlotOLD = s1Slot
-    Next i
-
-    Set Rng = Nothing
-
-    ActiveWorkbook.Save
-End Function
-
-
 Function Fun02_03_Mark_new_Slot()
 ' mlabrkic, date: 2024-06M-09
 ' EDIT:
@@ -609,10 +641,10 @@ Function Fun02_03_Mark_new_Slot()
     Dim i As Long
     Dim s1Slot As String, s1SlotOLD As String
 
-    s1SlotOLD = ActiveSheet.Cells(1, 1).Value
+    s1SlotOLD = ActiveSheet.Cells(1, 2).Value
 
     For i = 2 To FinalRow
-        s1Slot = ActiveSheet.Cells(i, 1).Value
+        s1Slot = ActiveSheet.Cells(i, 2).Value
 
         If s1Slot <> s1SlotOLD Then
            ' Set Rng = ActiveSheet.Cells(i, j)
@@ -635,6 +667,47 @@ Function Fun02_03_Mark_new_Slot()
     Set Rng = Nothing
 
     ActiveWorkbook.Save
+End Function
+
+
+Function Mark_new_Slot_PIC()
+' mlabrkic, date: 2024-06M-09
+' EDIT:
+
+' ------------------------------
+    Dim FinalRow As Long
+    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
+
+    Dim i As Long
+    Dim s1PIC As String, s1PICold As String
+
+    s1PICold = ActiveSheet.Cells(1, 15).Value
+
+    For i = 2 To FinalRow
+        s1PIC = ActiveSheet.Cells(i, 15).Value
+
+        If s1PIC <> s1PICold Then
+           ' Set Rng = ActiveSheet.Cells(i, j)
+           Set Rng = ActiveSheet.Range("A" & i & ":O" & i)
+           With Rng
+                With .Borders(xlEdgeTop)
+                   .LineStyle = xlContinuous
+                   .Weight = xlThin
+                   ' .Weight = xlThick
+                   .ColorIndex = 1   ' black
+                   ' .ColorIndex = 3   ' red
+                   ' .ColorIndex = 4   ' green
+                   ' .ColorIndex = 5   ' blue
+                End With
+            End With
+        End If
+        s1PICold = s1PIC
+    Next i
+
+    Set Rng = Nothing
+
+    ActiveWorkbook.Save
+
 End Function
 
 
@@ -680,177 +753,19 @@ Sub No_01_InsertColumn_REZERVACIJA_POVIJEST()
 
     Range("C1").Select
     Selection.Font.Bold = True
-    With Selection.Font
-        .Name = "Calibri"
-        .Size = 14
-        .Strikethrough = False
-        .Superscript = False
-        .Subscript = False
-        .OutlineFont = False
-        .Shadow = False
-        .Underline = xlUnderlineStyleNone
-        .ThemeColor = xlThemeColorLight1
-        .TintAndShade = 0
-        .ThemeFont = xlThemeFontMinor
-    End With
+'    With Selection.Font
+'        .Name = "Calibri"
+'        .Size = 14
+'        .Strikethrough = False
+'        .Superscript = False
+'        .Functionscript = False
+'        .OutlineFont = False
+'        .Shadow = False
+'        .Underline = xlUnderlineStyleNone
+'        .ThemeColor = xlThemeColorLight1
+'        .TintAndShade = 0
+'        .ThemeFont = xlThemeFontMinor
+'    End With
 
     ActiveWorkbook.Save
 End Sub
-
-
-
-Sub ZZ_No_06_Delete_rows_LC_Active()
-' mlabrkic, date: 2024-06M-10
-' EDIT:
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim s4Status As String, s7Connector As String
-
-    For i = FinalRow To 1 Step -1
-        s4Status = ActiveSheet.Cells(i, 4).Value
-        s7Connector = ActiveSheet.Cells(i, 7).Value
-
-        If (s4Status = "Aktivan") And (s7Connector = "LC") Then
-            ActiveSheet.Cells(i, 4).EntireRow.Delete
-        End If
-    Next i
-
-     ActiveWorkbook.Save
-End Sub
-
-
-Sub ZZ_No_02_Delete_rows_10G()
-' mlabrkic, date: 2024-06M-10
-' EDIT:
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim s5Bandwidth As String
-
-    For i = FinalRow To 1 Step -1
-        s5Bandwidth = ActiveSheet.Cells(i, 5).Value
-        s4Status = ActiveSheet.Cells(i, 4).Value
-
-        If (s5Bandwidth = "10 Gb") Or (s5Bandwidth = "100 Gb") Then
-            ActiveSheet.Cells(i, 5).EntireRow.Delete
-        End If
-    Next i
-
-     ActiveWorkbook.Save
-End Sub
-
-
-Sub ZZ_No_02_Delete_rows_1G()
-' mlabrkic, date: 2024-06M-10
-' EDIT:
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim s5Bandwidth As String
-
-    For i = FinalRow To 1 Step -1
-        s5Bandwidth = ActiveSheet.Cells(i, 5).Value
-
-        If (s5Bandwidth = "1 Gb") Then
-            ActiveSheet.Cells(i, 5).EntireRow.Delete
-        End If
-    Next i
-
-     ActiveWorkbook.Save
-End Sub
-
-
-Sub ZZ_Port_Name()
-' mlabrkic, date: 2024-06M-03
-
-' EDIT:
-' date:
-' ------------------------------
-    Dim myWB As Workbook
-    Set myWB = ThisWorkbook
-
-    Dim radnaSH As Worksheet
-    Set radnaSH = myWB.Worksheets("PORTOVI")
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = radnaSH.Cells(radnaSH.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim iPoint As Integer
-    Dim s2Temp As String, s2PortName As String
-
-    For i = 1 To FinalRow Step 1
-        s2Temp = radnaSH.Cells(i, 2).Value
-        iPoint = InStr(1, s2Temp, ".", 1) ' Pozicija "." nakon 1 karaktera
-
-        If iPoint > 0 Then
-            s2PortName = Left(s2Temp, iPoint - 1)
-        Else
-            s2PortName = s2Temp
-        End If
-        radnaSH.Cells(i, 17).Value = s2PortName
-    Next i
-
-    Set radnaSH = Nothing
-    Set myWB = Nothing
-
-End Sub
-
-
-Sub ZZ_No_06_Mark_new_Slot()
-' mlabrkic, date: 2024-06M-10
-' EDIT:
-
-' ------------------------------
-    Dim FinalRow As Long
-    FinalRow = ActiveSheet.Cells(ActiveSheet.Rows.Count, 1).End(xlUp).Row
-
-    Dim i As Long
-    Dim s1Slot As String, s1SlotOLD As String
-
-    Dim iSlot As Integer, iSlotOLD As Integer
-    Dim s1SlotMain As String, s1SlotOLDMain As String
-
-    s1SlotOLD = ActiveSheet.Cells(2, 1).Value
-    iSlotOLD = InStr(1, s1SlotOLD, "/", 1) ' Position "/" after 1. character
-    s1SlotOLDMain = Left(s1SlotOLD, iSlotOLD - 1)
-
-    For i = 3 To FinalRow
-        s1Slot = ActiveSheet.Cells(i, 1).Value
-        iSlot = InStr(1, s1Slot, "/", 1) ' Position "/" after 1. character
-        s1SlotMain = Left(s1Slot, iSlot - 1)
-
-        If s1SlotMain <> s1SlotOLDMain Then
-           ' Set Rng = ActiveSheet.Cells(i, j)
-           Set Rng = ActiveSheet.Range("A" & i & ":N" & i)
-           With Rng
-                With .Borders(xlEdgeTop)
-                   .LineStyle = xlContinuous
-                   ' .Weight = xlThin
-                   .Weight = xlThick
-                   ' .ColorIndex = 1   ' black
-                   ' .ColorIndex = 3   ' red
-                   ' .ColorIndex = 4   ' green
-                   .ColorIndex = 5   ' blue
-                End With
-            End With
-        End If
-        s1SlotOLDMain = s1SlotMain
-    Next i
-
-    Set Rng = Nothing
-
-    ActiveWorkbook.Save
-End Sub
-
